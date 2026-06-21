@@ -1,1 +1,69 @@
-<!DOCTYPE html><html><body><h1>Police CAD</h1></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LEO CAD</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>LEO CAD SYSTEM</h1>
+<p id="status">Checking access...</p>
+
+<div id="panel" style="display:none;">
+  <h2>Welcome Officer</h2>
+  <p id="roleText"></p>
+
+  <div>
+    <button>📡 Active Calls</button>
+    <button>🚓 Units</button>
+    <button>📋 Reports</button>
+  </div>
+
+  <div id="special"></div>
+</div>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const uid = localStorage.getItem("uid");
+
+if (!uid) window.location.href = "./index.html";
+
+const snap = await getDoc(doc(db, "users", uid));
+
+if (!snap.exists()) {
+  window.location.href = "./index.html";
+}
+
+const role = snap.data().role;
+
+// ALL LAW ENFORCEMENT ROLES
+const leoRoles = ["Police", "CHP", "LASO", "Admin"];
+
+if (!leoRoles.includes(role)) {
+  document.body.innerHTML = "<h1>Access Denied</h1>";
+} else {
+  document.getElementById("status").style.display = "none";
+  document.getElementById("panel").style.display = "block";
+
+  document.getElementById("roleText").innerText = "Role: " + role;
+
+  const special = document.getElementById("special");
+
+  if (role === "CHP") {
+    special.innerHTML = "<h3>🚨 Highway Patrol Tools Enabled</h3>";
+  }
+
+  if (role === "LASO") {
+    special.innerHTML = "<h3>🚨 Sheriff Tools Enabled</h3>";
+  }
+
+  if (role === "Police") {
+    special.innerHTML = "<h3>🚨 Local PD Tools Enabled</h3>";
+  }
+}
+</script>
+
+</body>
+</html>
