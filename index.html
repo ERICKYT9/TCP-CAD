@@ -1,11 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>TCP CAD Login</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>TCP CAD LOGIN</h1>
+
+<p>Enter User ID (for now)</p>
+
+<input id="uidInput" placeholder="Enter: testUser">
+<button onclick="login()">Login</button>
+
+<p id="msg"></p>
+
 <script type="module">
-  import { login } from "./firebase.js";
+import { db } from "./firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  document.getElementById("loginBtn").addEventListener("click", async () => {
-    const user = await login();
+window.login = async () => {
+  const uid = document.getElementById("uidInput").value;
 
-    localStorage.setItem("uid", user.uid);
+  const ref = doc(db, "users", uid);
+  const snap = await getDoc(ref);
 
-    window.location.href = "./dashboard.html";
-  });
+  if (!snap.exists()) {
+    document.getElementById("msg").innerText = "User not found";
+    return;
+  }
+
+  // store session
+  localStorage.setItem("uid", uid);
+
+  document.getElementById("msg").innerText = "Login successful... redirecting";
+
+  setTimeout(() => {
+    window.location.href = "./leo.html";
+  }, 1000);
+};
 </script>
+
+</body>
+</html>
