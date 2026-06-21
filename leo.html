@@ -1,36 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
   <title>LEO CAD</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>LEO CAD SYSTEM</h1>
+<h1>LEO CAD</h1>
 <p id="status">Loading...</p>
 
 <div id="panel" style="display:none;">
 
-  <h2 id="roleText"></h2>
+<h2>Unit Status</h2>
 
-  <!-- UNIT STATUS -->
-  <h3>Unit Status</h3>
-  <button onclick="setStatus('10-8')">10-8 Available</button>
-  <button onclick="setStatus('10-6')">10-6 Busy</button>
-  <button onclick="setStatus('10-97')">10-97 Enroute</button>
-  <button onclick="setStatus('10-23')">On Scene</button>
+<button onclick="setStatus('10-8')">10-8</button>
+<button onclick="setStatus('10-6')">10-6</button>
+<button onclick="setStatus('10-97')">10-97</button>
+<button onclick="setStatus('10-23')">10-23</button>
 
-  <hr>
+<hr>
 
-  <!-- CALLS -->
-  <h3>Active Calls</h3>
-  <div id="calls"></div>
+<h2>Active Calls</h2>
+<div id="calls"></div>
 
 </div>
 
 <script type="module">
-
 import { db } from "./firebase.js";
 import {
   doc,
@@ -40,72 +35,65 @@ import {
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-/* ---------------- LOGIN CHECK ---------------- */
-
 const uid = localStorage.getItem("uid");
+if (!uid) window.location.href = "./index.html";
 
-if (!uid) {
-  window.location.href = "./index.html";
+const ref = doc(db, "users", uid);
+const snap = await getDoc(ref);
+
+if (!snap.exists()) window.location.href = "./index.html";
+
+const user = snap.data();
+
+if (!["LEO","Admin"].includes(user.role)) {
+  document.body.innerHTML = "Access Denied";
 }
-
-const userRef = doc(db, "users", uid);
-const userSnap = await getDoc(userRef);
-
-if (!userSnap.exists()) {
-  window.location.href = "./index.html";
-}
-
-const user = userSnap.data();
-const role = user.role;
-
-/* ---------------- ROLE CHECK ---------------- */
-
-const allowedRoles = ["Police", "CHP", "LASO", "Admin"];
-
-if (!allowedRoles.includes(role)) {
-  document.body.innerHTML = "<h1>Access Denied</h1>";
-}
-
-/* ---------------- SHOW UI ---------------- */
 
 document.getElementById("status").style.display = "none";
 document.getElementById("panel").style.display = "block";
-document.getElementById("roleText").innerText = "Role: " + role;
-
-/* ---------------- UNIT STATUS ---------------- */
 
 window.setStatus = async (status) => {
-  await updateDoc(doc(db, "users", uid), {
-    status: status
+  await updateDoc(ref, { status });
+};
+
+window.accept = async (id) => {
+  await updateDoc(doc(db,"calls",id), {
+    accepted: true,
+    status: "Enroute",
+    assigned: uid
   });
 };
 
-/* ---------------- LIVE CALLS ---------------- */
+window.decline = async (id) => {
+  await updateDoc(doc(db,"calls",id), {
+    assigned: null,
+    accepted: false,
+    status: "Active"
+  });
+};
 
-onSnapshot(collection(db, "calls"), (snap) => {
-  const container = document.getElementById("calls");
-  container.innerHTML = "";
+onSnapshot(collection(db,"calls"), snap => {
+  const c = document.getElementById("calls");
+  c.innerHTML = "";
 
-  snap.forEach(call => {
-    const data = call.data();
+  snap.forEach(d => {
+    const call = d.data();
 
-    const div = document.createElement("div");
-    div.style.border = "1px solid #aaa";
-    div.style.margin = "5px";
-    div.style.padding = "5px";
+    c.innerHTML += `
+      <div style="border:1px solid #ccc;margin:5px;padding:5px">
+        <b>${call.type}</b><br>
+        ${call.location}<br>
+        Status: ${call.status}<br>
+        Assigned: ${call.assigned || "None"}<br>
 
-    div.innerHTML = `
-      <b>${data.type}</b><br>
-      📍 ${data.location}<br>
-      📡 Status: ${data.status}<br>
-      🚓 Assigned: ${data.assignedUnit || "None"}<br>
-      ✔ Accepted: ${data.accepted ? "YES" : "NO"}<br>
+        ${call.assigned === uid ? `
+          <button onclick="accept('${d.id}')">Accept</button>
+          <button onclick="decline('${d.id}')">Decline</button>
+        ` : ""}
+      </div>
     `;
-
-    container.appendChild(div);
   });
 });
-
 </script>
 
 </body>
