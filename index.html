@@ -3,21 +3,79 @@
 <head>
   <meta charset="utf-8">
   <title>TCP CAD Login</title>
-  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      background: url("https://images.unsplash.com/photo-1581091870622-2c9b6b9c2d2d") no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card {
+      background: rgba(17,24,39,0.9);
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      width: 320px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #5865F2;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #4752c4;
+    }
+
+    .small {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 10px;
+    }
+  </style>
 </head>
+
 <body>
 
-<h1>TCP CAD</h1>
+<div class="overlay">
+  <div class="card">
+    <h1>TCP CAD</h1>
+    <p>Secure Police CAD System</p>
 
-<div class="card">
-  <h3>Login</h3>
-  <button onclick="login()">Login with Discord</button>
+    <button onclick="login()">Login with Discord</button>
+
+    <div class="small">Authorized Personnel Only</div>
+  </div>
 </div>
 
 <script>
 const CLIENT_ID = "1517160152376021002";
-
-/* MUST EXACT MATCH Discord Dev Portal Redirect */
 const REDIRECT = "https://erickyt9.github.io/TCP-CAD/dashboard.html";
 
 function login() {
@@ -26,9 +84,11 @@ function login() {
     `?client_id=${CLIENT_ID}` +
     "&response_type=token" +
     `&redirect_uri=${encodeURIComponent(REDIRECT)}` +
-    "&scope=identify" +
-    "&prompt=consent";
+    "&scope=identify";
 
   window.location.href = url;
 }
 </script>
+
+</body>
+</html>
