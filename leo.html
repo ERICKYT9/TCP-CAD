@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <title>LEO CAD</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <h1>LEO CAD</h1>
-
-<p id="status">Loading calls...</p>
 
 <div id="calls"></div>
 
@@ -29,24 +28,23 @@ onSnapshot(collection(db, "calls"), (snap) => {
   const box = document.getElementById("calls");
   box.innerHTML = "";
 
-  snap.forEach(docSnap => {
-    const c = docSnap.data();
-    const id = docSnap.id;
+  snap.forEach(d => {
+    const c = d.data();
 
     box.innerHTML += `
       <div class="card">
         <b>${c.type}</b><br>
-        📍 ${c.location}<br>
+        ${c.location}<br>
         Status: ${c.status}<br>
 
-        <button onclick="acceptCall('${id}')">Accept</button>
+        <button onclick="accept('${d.id}')">Accept</button>
       </div>
     `;
   });
 });
 
 /* ACCEPT CALL */
-window.acceptCall = async (id) => {
+window.accept = async (id) => {
   await updateDoc(doc(db, "calls", id), {
     assignedTo: uid,
     status: "Enroute"
