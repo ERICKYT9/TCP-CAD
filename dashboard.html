@@ -1,1 +1,36 @@
-<!DOCTYPE html><html><body><h1>Dashboard</h1></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>TCP CAD Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h1>TCP CAD Dashboard</h1>
+  <p id="user"></p>
+
+  <div style="display:grid;gap:10px;max-width:300px;margin:40px auto;">
+    <button onclick="go('police.html')">🚓 Police CAD</button>
+    <button onclick="go('fire.html')">🔥 Fire/EMS CAD</button>
+    <button onclick="go('dispatch.html')">📞 Dispatch</button>
+    <button onclick="go('dot.html')">🛣️ DOT</button>
+    <button onclick="go('fbi.html')">🕵️ FBI TAC</button>
+  </div>
+
+  <script>
+    const uid = localStorage.getItem("uid");
+
+    if (!uid) {
+      window.location.href = "./index.html";
+    }
+
+    document.getElementById("user").innerText = "User ID: " + uid;
+
+    function go(page) {
+      window.location.href = page;
+    }
+  </script>
+
+</body>
+</html>
