@@ -1,1 +1,0 @@
-document.getElementById('loginBtn')?.addEventListener('click',()=>alert('Connect Firebase auth here.'));
