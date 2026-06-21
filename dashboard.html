@@ -1,117 +1,83 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>TCP CAD Dashboard</title>
+  <title>Dashboard</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <h1>TCP CAD DASHBOARD</h1>
 
-<p id="status">Authenticating...</p>
+<p id="status">Loading...</p>
 
 <div id="panel" style="display:none;" class="card">
 
-  <h2>Welcome, <span id="username"></span></h2>
-  <p>Discord ID: <span id="discordId"></span></p>
+  <h2>Welcome <span id="name"></span></h2>
+  <p>ID: <span id="did"></span></p>
   <p>Role: <span id="role"></span></p>
 
-  <hr>
-
-  <h3>Select CAD Module</h3>
-
-  <button onclick="go('LEO')">🚓 LEO CAD</button>
-  <button onclick="go('Dispatch')">📞 Dispatch</button>
-  <button onclick="go('Fire')">🔥 Fire/EMS</button>
-  <button onclick="go('DOT')">🛣️ DOT</button>
-  <button onclick="go('Civilian')">👤 Civilian</button>
-  <button onclick="go('Admin')">👑 Admin</button>
+  <button onclick="go('LEO')">LEO</button>
+  <button onclick="go('Dispatch')">Dispatch</button>
+  <button onclick="go('Civilian')">Civilian</button>
+  <button onclick="go('Admin')">Admin</button>
 
 </div>
 
 <script type="module">
 
 import { db } from "./js/firebase.js";
-console.log("Firebase loaded:", db);
 import {
   doc,
   getDoc,
   setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-/* ---------------- TOKEN HANDLING ---------------- */
-
 function getToken() {
   const hash = window.location.hash;
-  if (!hash) return null;
-
-  const params = new URLSearchParams(hash.replace("#", ""));
+  const params = new URLSearchParams(hash.replace("#",""));
   return params.get("access_token");
 }
 
 const token = getToken();
-
-/* remove token from URL immediately (IMPORTANT FIX) */
 window.history.replaceState({}, document.title, window.location.pathname);
 
 if (!token) {
-  document.getElementById("status").innerText =
-    "No login detected. Please login again.";
+  document.getElementById("status").innerText = "No login detected";
   throw new Error("No token");
 }
 
-/* ---------------- DISCORD USER FETCH ---------------- */
-
-const discordRes = await fetch("https://discord.com/api/users/@me", {
-  headers: {
-    Authorization: `Bearer ${token}`
-  }
+const res = await fetch("https://discord.com/api/users/@me", {
+  headers: { Authorization: `Bearer ${token}` }
 });
 
-const discordUser = await discordRes.json();
+const user = await res.json();
 
-/* ---------------- FIREBASE USER LINK ---------------- */
-
-const uid = discordUser.id;
-const ref = doc(db, "users", uid);
+const ref = doc(db, "users", user.id);
 const snap = await getDoc(ref);
 
 if (!snap.exists()) {
   await setDoc(ref, {
-    discordId: discordUser.id,
-    username: discordUser.username,
-    avatar: discordUser.avatar,
+    discordId: user.id,
+    username: user.username,
     role: "Civilian",
     status: "10-8"
   });
 }
 
-const userSnap = await getDoc(ref);
-const user = userSnap.data();
-
-/* ---------------- UI ---------------- */
+const finalUser = (await getDoc(ref)).data();
 
 document.getElementById("status").style.display = "none";
 document.getElementById("panel").style.display = "block";
 
-document.getElementById("username").innerText = user.username;
-document.getElementById("discordId").innerText = user.discordId;
-document.getElementById("role").innerText = user.role;
+document.getElementById("name").innerText = finalUser.username;
+document.getElementById("did").innerText = finalUser.discordId;
+document.getElementById("role").innerText = finalUser.role;
 
-/* ---------------- NAVIGATION ---------------- */
-
-window.go = (role) => {
-  if (role === "LEO") window.location.href = "./leo.html";
-  if (role === "Dispatch") window.location.href = "./dispatch.html";
-  if (role === "Fire") window.location.href = "./fire.html";
-  if (role === "DOT") window.location.href = "./dot.html";
-  if (role === "Civilian") window.location.href = "./civilian.html";
-  if (role === "Admin") window.location.href = "./admin.html";
+window.go = (r) => {
+  location.href = "./" + r.toLowerCase() + ".html";
 };
 
 </script>
 
 </body>
 </html>
-
