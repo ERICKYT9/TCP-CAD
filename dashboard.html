@@ -1,36 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>TCP CAD Dashboard</title>
+  <title>Dispatch CAD</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h1>TCP CAD Dashboard</h1>
-  <p id="user"></p>
+<h1>Dispatch CAD</h1>
+<p id="status">Checking access...</p>
 
-  <div style="display:grid;gap:10px;max-width:300px;margin:40px auto;">
-    <button onclick="go('police.html')">🚓 Police CAD</button>
-    <button onclick="go('fire.html')">🔥 Fire/EMS CAD</button>
-    <button onclick="go('dispatch.html')">📞 Dispatch</button>
-    <button onclick="go('dot.html')">🛣️ DOT</button>
-    <button onclick="go('fbi.html')">🕵️ FBI TAC</button>
-  </div>
+<div id="panel" style="display:none;">
+  <h2>Dispatch Control Center</h2>
+  <button>📡 Active Calls</button>
+  <button>🚓 Units Status</button>
+  <button>➕ Create Call</button>
+</div>
 
-  <script>
-    const uid = localStorage.getItem("uid");
+<script type="module">
+import { db } from "./firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-    if (!uid) {
-      window.location.href = "./index.html";
-    }
+const uid = localStorage.getItem("uid");
+if (!uid) window.location.href = "./index.html";
 
-    document.getElementById("user").innerText = "User ID: " + uid;
+const snap = await getDoc(doc(db, "users", uid));
+if (!snap.exists()) window.location.href = "./index.html";
 
-    function go(page) {
-      window.location.href = page;
-    }
-  </script>
+const role = snap.data().role;
+
+if (role !== "Dispatch" && role !== "Admin") {
+  document.body.innerHTML = "Access Denied";
+} else {
+  document.getElementById("status").style.display = "none";
+  document.getElementById("panel").style.display = "block";
+}
+</script>
 
 </body>
 </html>
