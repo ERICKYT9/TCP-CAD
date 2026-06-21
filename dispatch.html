@@ -9,6 +9,8 @@
 
 <h1>Dispatch Panel</h1>
 
+<button class="back" onclick="history.back()">⬅ Back</button>
+
 <div class="card">
   <input id="type" placeholder="Call Type">
   <input id="location" placeholder="Location">
@@ -20,27 +22,21 @@
 <script type="module">
 
 import { db } from "./js/firebase.js";
-import {
-  collection,
-  addDoc,
-  onSnapshot
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-/* CREATE CALL */
 window.createCall = async () => {
   await addDoc(collection(db, "calls"), {
-    type: document.getElementById("type").value,
-    location: document.getElementById("location").value,
+    type: type.value,
+    location: location.value,
     status: "Active",
     assignedTo: null,
     createdAt: Date.now()
   });
 
-  document.getElementById("type").value = "";
-  document.getElementById("location").value = "";
+  type.value = "";
+  location.value = "";
 };
 
-/* LIVE CALLS */
 onSnapshot(collection(db, "calls"), (snap) => {
   const box = document.getElementById("calls");
   box.innerHTML = "";
