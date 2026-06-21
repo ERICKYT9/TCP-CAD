@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <title>Dispatch CAD</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h1>Dispatch Center</h1>
+<p id="status">Loading...</p>
 
 <div id="panel" style="display:none;">
 
@@ -14,7 +16,9 @@
 
   <input id="type" placeholder="Call Type">
   <input id="location" placeholder="Location">
-  <button id="create">Create Call</button>
+  <button onclick="createCall()">Create Call</button>
+
+  <hr>
 
   <h2>Active Calls</h2>
   <div id="calls"></div>
@@ -22,28 +26,43 @@
 </div>
 
 <script type="module">
+
 import { db } from "./firebase.js";
 import {
-  doc, getDoc,
-  collection,
+  doc,
+  getDoc,
   addDoc,
   updateDoc,
+  collection,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+/* ---------------- LOGIN ---------------- */
+
 const uid = localStorage.getItem("uid");
-if (!uid) window.location.href = "./index.html";
 
-const me = await getDoc(doc(db, "users", uid));
+if (!uid) {
+  window.location.href = "./index.html";
+}
 
-if (!me.exists() || (me.data().role !== "Dispatch" && me.data().role !== "Admin")) {
+const userSnap = await getDoc(doc(db, "users", uid));
+
+if (!userSnap.exists()) {
+  window.location.href = "./index.html";
+}
+
+const role = userSnap.data().role;
+
+if (role !== "Dispatch" && role !== "Admin") {
   document.body.innerHTML = "<h1>Access Denied</h1>";
 }
 
+document.getElementById("status").style.display = "none";
 document.getElementById("panel").style.display = "block";
 
-// CREATE CALL
-document.getElementById("create").onclick = async () => {
+/* ---------------- CREATE CALL ---------------- */
+
+window.createCall = async () => {
   await addDoc(collection(db, "calls"), {
     type: type.value,
     location: location.value,
@@ -52,9 +71,13 @@ document.getElementById("create").onclick = async () => {
     accepted: false,
     timestamp: Date.now()
   });
+
+  type.value = "";
+  location.value = "";
 };
 
-// LIVE CALLS
+/* ---------------- LIVE CALLS ---------------- */
+
 onSnapshot(collection(db, "calls"), (snap) => {
   const container = document.getElementById("calls");
   container.innerHTML = "";
@@ -63,18 +86,18 @@ onSnapshot(collection(db, "calls"), (snap) => {
     const data = call.data();
 
     const div = document.createElement("div");
-    div.style.border = "1px solid white";
+    div.style.border = "1px solid #aaa";
     div.style.margin = "5px";
     div.style.padding = "5px";
 
     div.innerHTML = `
       <b>${data.type}</b><br>
-      ${data.location}<br>
-      Status: ${data.status}<br>
-      Assigned: ${data.assignedUnit || "None"}<br>
-      Accepted: ${data.accepted ? "YES" : "NO"}<br>
+      📍 ${data.location}<br>
+      📡 ${data.status}<br>
+      🚓 Assigned: ${data.assignedUnit || "None"}<br>
+      ✔ Accepted: ${data.accepted ? "Yes" : "No"}<br>
 
-      <button onclick="assign('${call.id}')">Assign Unit</button>
+      <button onclick="assign('${call.id}')">Assign Me</button>
       <button onclick="closeCall('${call.id}')">Close</button>
     `;
 
@@ -82,21 +105,22 @@ onSnapshot(collection(db, "calls"), (snap) => {
   });
 });
 
-// ASSIGN (still pending until officer accepts)
+/* ---------------- ASSIGN / CLOSE ---------------- */
+
 window.assign = async (id) => {
   await updateDoc(doc(db, "calls", id), {
     assignedUnit: uid,
-    accepted: false,
-    status: "Pending Acceptance"
+    status: "Pending Acceptance",
+    accepted: false
   });
 };
 
-// CLOSE
 window.closeCall = async (id) => {
   await updateDoc(doc(db, "calls", id), {
     status: "Closed"
   });
 };
+
 </script>
 
 </body>
