@@ -1,23 +1,11 @@
 <script type="module">
-  import { auth } from "./firebase.js";
-  import {
-    signInAnonymously
-  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+  import { login } from "./firebase.js";
 
-  const btn = document.getElementById("loginBtn");
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const user = await login();
 
-  btn.addEventListener("click", async () => {
-    try {
-      const userCred = await signInAnonymously(auth);
+    localStorage.setItem("uid", user.uid);
 
-      // store user in browser
-      localStorage.setItem("uid", userCred.user.uid);
-
-      // go to dashboard
-      window.location.href = "./dashboard.html";
-    } catch (err) {
-      console.error(err);
-      alert("Login failed");
-    }
+    window.location.href = "./dashboard.html";
   });
 </script>
