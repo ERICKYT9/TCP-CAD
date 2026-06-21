@@ -9,6 +9,15 @@
 
 <h1>LEO CAD</h1>
 
+<button class="back" onclick="history.back()">⬅ Back</button>
+
+<div class="card">
+  <button onclick="setStatus('10-8')">10-8</button>
+  <button onclick="setStatus('10-6')">10-6</button>
+  <button onclick="setStatus('10-7')">10-7</button>
+  <p id="statusText">Status: Unknown</p>
+</div>
+
 <div id="calls"></div>
 
 <script type="module">
@@ -23,7 +32,10 @@ import {
 
 const uid = localStorage.getItem("discordId");
 
-/* LIVE CALL STREAM */
+window.setStatus = (s) => {
+  document.getElementById("statusText").innerText = "Status: " + s;
+};
+
 onSnapshot(collection(db, "calls"), (snap) => {
   const box = document.getElementById("calls");
   box.innerHTML = "";
@@ -43,7 +55,6 @@ onSnapshot(collection(db, "calls"), (snap) => {
   });
 });
 
-/* ACCEPT CALL */
 window.accept = async (id) => {
   await updateDoc(doc(db, "calls", id), {
     assignedTo: uid,
