@@ -2,98 +2,57 @@
 <html>
 <head>
   <title>LEO CAD</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <h1>LEO CAD</h1>
-<p id="status">Loading...</p>
 
-<div id="panel" style="display:none;">
+<p id="status">Loading calls...</p>
 
-<h2>Unit Status</h2>
-
-<button onclick="setStatus('10-8')">10-8</button>
-<button onclick="setStatus('10-6')">10-6</button>
-<button onclick="setStatus('10-97')">10-97</button>
-<button onclick="setStatus('10-23')">10-23</button>
-
-<hr>
-
-<h2>Active Calls</h2>
 <div id="calls"></div>
 
-</div>
-
 <script type="module">
-import { db } from "./firebase.js";
+
+import { db } from "./js/firebase.js";
 import {
-  doc,
-  getDoc,
-  updateDoc,
   collection,
-  onSnapshot
+  onSnapshot,
+  doc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-const uid = localStorage.getItem("uid");
-if (!uid) window.location.href = "./index.html";
+const uid = localStorage.getItem("discordId");
 
-const ref = doc(db, "users", uid);
-const snap = await getDoc(ref);
+/* LIVE CALL STREAM */
+onSnapshot(collection(db, "calls"), (snap) => {
+  const box = document.getElementById("calls");
+  box.innerHTML = "";
 
-if (!snap.exists()) window.location.href = "./index.html";
+  snap.forEach(docSnap => {
+    const c = docSnap.data();
+    const id = docSnap.id;
 
-const user = snap.data();
+    box.innerHTML += `
+      <div class="card">
+        <b>${c.type}</b><br>
+        📍 ${c.location}<br>
+        Status: ${c.status}<br>
 
-if (!["LEO","Admin"].includes(user.role)) {
-  document.body.innerHTML = "Access Denied";
-}
-
-document.getElementById("status").style.display = "none";
-document.getElementById("panel").style.display = "block";
-
-window.setStatus = async (status) => {
-  await updateDoc(ref, { status });
-};
-
-window.accept = async (id) => {
-  await updateDoc(doc(db,"calls",id), {
-    accepted: true,
-    status: "Enroute",
-    assigned: uid
-  });
-};
-
-window.decline = async (id) => {
-  await updateDoc(doc(db,"calls",id), {
-    assigned: null,
-    accepted: false,
-    status: "Active"
-  });
-};
-
-onSnapshot(collection(db,"calls"), snap => {
-  const c = document.getElementById("calls");
-  c.innerHTML = "";
-
-  snap.forEach(d => {
-    const call = d.data();
-
-    c.innerHTML += `
-      <div style="border:1px solid #ccc;margin:5px;padding:5px">
-        <b>${call.type}</b><br>
-        ${call.location}<br>
-        Status: ${call.status}<br>
-        Assigned: ${call.assigned || "None"}<br>
-
-        ${call.assigned === uid ? `
-          <button onclick="accept('${d.id}')">Accept</button>
-          <button onclick="decline('${d.id}')">Decline</button>
-        ` : ""}
+        <button onclick="acceptCall('${id}')">Accept</button>
       </div>
     `;
   });
 });
+
+/* ACCEPT CALL */
+window.acceptCall = async (id) => {
+  await updateDoc(doc(db, "calls", id), {
+    assignedTo: uid,
+    status: "Enroute"
+  });
+};
+
 </script>
 
 </body>
