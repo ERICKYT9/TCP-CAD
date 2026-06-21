@@ -6,45 +6,100 @@
 </head>
 <body>
 
-<h1>CAD Dashboard</h1>
-<p id="info">Loading...</p>
+<h1>TCP CAD DASHBOARD</h1>
+
+<p id="status">Authenticating...</p>
 
 <div id="panel" style="display:none;">
+  <h2>Welcome, <span id="name"></span></h2>
+  <p>Discord ID: <span id="did"></span></p>
+  <p>Role: <span id="role"></span></p>
 
-  <h2>Select Role</h2>
+  <h3>Select Mode</h3>
 
-  <button onclick="setRole('Civilian')">Civilian</button>
-  <button onclick="setRole('LEO')">Law Enforcement</button>
-  <button onclick="setRole('Dispatch')">Dispatch</button>
-  <button onclick="setRole('Admin')">Admin</button>
-
+  <button onclick="go('Civilian')">Civilian</button>
+  <button onclick="go('LEO')">LEO CAD</button>
+  <button onclick="go('Dispatch')">Dispatch</button>
+  <button onclick="go('Admin')">Admin</button>
 </div>
 
 <script type="module">
+
 import { db } from "./firebase.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import {
+  doc,
+  getDoc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-const uid = localStorage.getItem("uid");
-if (!uid) window.location.href = "./index.html";
+/* ---------------- GET DISCORD TOKEN ---------------- */
 
-const ref = doc(db, "users", uid);
-const snap = await getDoc(ref);
+function getToken() {
+  const hash = window.location.hash;
+  if (!hash) return null;
 
-if (!snap.exists()) window.location.href = "./index.html";
+  const params = new URLSearchParams(hash.replace("#",""));
+  return params.get("access_token");
+}
 
-const user = snap.data();
+const token = getToken();
 
-document.getElementById("info").innerText = "Logged in as " + user.username;
+if (!token) {
+  document.getElementById("status").innerText =
+    "No Discord login detected. Go back and login.";
+}
+
+/* ---------------- FETCH DISCORD USER ---------------- */
+
+const discordRes = await fetch("https://discord.com/api/users/@me", {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+});
+
+const discordUser = await discordRes.json();
+
+/* ---------------- FIREBASE USER LINK ---------------- */
+
+const uid = discordUser.id;
+
+const userRef = doc(db, "users", uid);
+const snap = await getDoc(userRef);
+
+/* create user if not exists */
+
+if (!snap.exists()) {
+  await setDoc(userRef, {
+    discordId: discordUser.id,
+    username: discordUser.username,
+    role: "Civilian",
+    status: "10-8"
+  });
+}
+
+/* reload data */
+
+const userSnap = await getDoc(userRef);
+const user = userSnap.data();
+
+/* ---------------- SHOW UI ---------------- */
+
+document.getElementById("status").style.display = "none";
 document.getElementById("panel").style.display = "block";
 
-window.setRole = async (role) => {
-  await updateDoc(ref, { role });
+document.getElementById("name").innerText = user.username;
+document.getElementById("did").innerText = user.discordId;
+document.getElementById("role").innerText = user.role;
 
-  if (role === "LEO") window.location.href = "./leo.html";
-  if (role === "Civilian") window.location.href = "./civilian.html";
-  if (role === "Dispatch") window.location.href = "./dispatch.html";
-  if (role === "Admin") window.location.href = "./admin.html";
+/* ---------------- NAVIGATION ---------------- */
+
+window.go = (mode) => {
+  if (mode === "Civilian") window.location.href = "./civilian.html";
+  if (mode === "LEO") window.location.href = "./leo.html";
+  if (mode === "Dispatch") window.location.href = "./dispatch.html";
+  if (mode === "Admin") window.location.href = "./admin.html";
 };
+
 </script>
 
 </body>
