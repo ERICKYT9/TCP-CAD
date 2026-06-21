@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <title>LEO CAD</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h1>LEO CAD SYSTEM</h1>
-
-<p id="status">Loading CAD...</p>
+<p id="status">Loading...</p>
 
 <div id="panel" style="display:none;">
 
@@ -16,24 +16,16 @@
 
   <!-- UNIT STATUS -->
   <h3>Unit Status</h3>
-  <button onclick="setStatus('10-8')">10-8 (Available)</button>
-  <button onclick="setStatus('10-6')">10-6 (Busy)</button>
-  <button onclick="setStatus('10-97')">10-97 (Enroute)</button>
-  <button onclick="setStatus('10-23')">10-23 (On Scene)</button>
+  <button onclick="setStatus('10-8')">10-8 Available</button>
+  <button onclick="setStatus('10-6')">10-6 Busy</button>
+  <button onclick="setStatus('10-97')">10-97 Enroute</button>
+  <button onclick="setStatus('10-23')">On Scene</button>
 
   <hr>
 
   <!-- CALLS -->
   <h3>Active Calls</h3>
   <div id="calls"></div>
-
-  <hr>
-
-  <!-- MDT -->
-  <h3>MDT Lookup</h3>
-  <input id="search" placeholder="Search Plate or Name">
-  <button onclick="searchMDT()">Search</button>
-  <div id="results"></div>
 
 </div>
 
@@ -45,11 +37,10 @@ import {
   getDoc,
   updateDoc,
   collection,
-  onSnapshot,
-  getDocs
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-/* ---------------- LOGIN ---------------- */
+/* ---------------- LOGIN CHECK ---------------- */
 
 const uid = localStorage.getItem("uid");
 
@@ -57,13 +48,15 @@ if (!uid) {
   window.location.href = "./index.html";
 }
 
-const me = await getDoc(doc(db, "users", uid));
+const userRef = doc(db, "users", uid);
+const userSnap = await getDoc(userRef);
 
-if (!me.exists()) {
+if (!userSnap.exists()) {
   window.location.href = "./index.html";
 }
 
-const role = me.data().role;
+const user = userSnap.data();
+const role = user.role;
 
 /* ---------------- ROLE CHECK ---------------- */
 
@@ -97,9 +90,9 @@ onSnapshot(collection(db, "calls"), (snap) => {
     const data = call.data();
 
     const div = document.createElement("div");
-    div.style.border = "1px solid #999";
-    div.style.margin = "6px";
-    div.style.padding = "6px";
+    div.style.border = "1px solid #aaa";
+    div.style.margin = "5px";
+    div.style.padding = "5px";
 
     div.innerHTML = `
       <b>${data.type}</b><br>
@@ -112,51 +105,6 @@ onSnapshot(collection(db, "calls"), (snap) => {
     container.appendChild(div);
   });
 });
-
-/* ---------------- MDT SEARCH ---------------- */
-
-window.searchMDT = async () => {
-  const q = document.getElementById("search").value.toLowerCase();
-  const results = document.getElementById("results");
-  results.innerHTML = "";
-
-  // VEHICLES
-  const vehicles = await getDocs(collection(db, "vehicles"));
-
-  vehicles.forEach(v => {
-    const d = v.data();
-
-    if (
-      (d.plate && d.plate.toLowerCase().includes(q)) ||
-      (d.model && d.model.toLowerCase().includes(q))
-    ) {
-      results.innerHTML += `
-        <div>
-          🚗 VEHICLE<br>
-          Plate: ${d.plate}<br>
-          Model: ${d.model}
-        </div><hr>
-      `;
-    }
-  });
-
-  // PERSONS
-  const persons = await getDocs(collection(db, "persons"));
-
-  persons.forEach(p => {
-    const d = p.data();
-
-    if (d.name && d.name.toLowerCase().includes(q)) {
-      results.innerHTML += `
-        <div>
-          👤 PERSON<br>
-          Name: ${d.name}<br>
-          DOB: ${d.dob}
-        </div><hr>
-      `;
-    }
-  });
-};
 
 </script>
 
