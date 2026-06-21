@@ -1,15 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import {
-  getAuth,
-  signInAnonymously
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBZYGk1zoraXj4NNkjzm8M3mym10uGWpw4",
@@ -22,31 +12,4 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
-export const auth = getAuth(app);
 export const db = getFirestore(app);
-
-/**
- * Create user if not exists
- */
-export async function createUserIfNeeded(user) {
-  const ref = doc(db, "users", user.uid);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    await setDoc(ref, {
-      uid: user.uid,
-      role: "Civilian", // default role
-      createdAt: Date.now()
-    });
-  }
-}
-
-/**
- * Login function
- */
-export async function login() {
-  const cred = await signInAnonymously(auth);
-  await createUserIfNeeded(cred.user);
-  return cred.user;
-}
