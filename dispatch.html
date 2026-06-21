@@ -1,126 +1,65 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Dispatch CAD</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Dispatch</title>
 </head>
 <body>
 
-<h1>Dispatch Center</h1>
-<p id="status">Loading...</p>
+<h1>Dispatch</h1>
 
-<div id="panel" style="display:none;">
+<div id="panel">
 
-  <h2>Create Call</h2>
+<h2>Create Call</h2>
+<input id="type" placeholder="Type">
+<input id="location" placeholder="Location">
+<button onclick="create()">Create</button>
 
-  <input id="type" placeholder="Call Type">
-  <input id="location" placeholder="Location">
-  <button onclick="createCall()">Create Call</button>
-
-  <hr>
-
-  <h2>Active Calls</h2>
-  <div id="calls"></div>
+<h2>Calls</h2>
+<div id="calls"></div>
 
 </div>
 
 <script type="module">
-
 import { db } from "./firebase.js";
 import {
-  doc,
-  getDoc,
+  collection,
   addDoc,
   updateDoc,
-  collection,
+  doc,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-/* ---------------- LOGIN ---------------- */
-
-const uid = localStorage.getItem("uid");
-
-if (!uid) {
-  window.location.href = "./index.html";
-}
-
-const userSnap = await getDoc(doc(db, "users", uid));
-
-if (!userSnap.exists()) {
-  window.location.href = "./index.html";
-}
-
-const role = userSnap.data().role;
-
-if (role !== "Dispatch" && role !== "Admin") {
-  document.body.innerHTML = "<h1>Access Denied</h1>";
-}
-
-document.getElementById("status").style.display = "none";
-document.getElementById("panel").style.display = "block";
-
-/* ---------------- CREATE CALL ---------------- */
-
-window.createCall = async () => {
-  await addDoc(collection(db, "calls"), {
-    type: type.value,
-    location: location.value,
-    status: "Active",
-    assignedUnit: null,
-    accepted: false,
-    timestamp: Date.now()
+window.create = async () => {
+  await addDoc(collection(db,"calls"),{
+    type:type.value,
+    location:location.value,
+    status:"Active",
+    assigned:null,
+    accepted:false
   });
-
-  type.value = "";
-  location.value = "";
 };
-
-/* ---------------- LIVE CALLS ---------------- */
-
-onSnapshot(collection(db, "calls"), (snap) => {
-  const container = document.getElementById("calls");
-  container.innerHTML = "";
-
-  snap.forEach(call => {
-    const data = call.data();
-
-    const div = document.createElement("div");
-    div.style.border = "1px solid #aaa";
-    div.style.margin = "5px";
-    div.style.padding = "5px";
-
-    div.innerHTML = `
-      <b>${data.type}</b><br>
-      📍 ${data.location}<br>
-      📡 ${data.status}<br>
-      🚓 Assigned: ${data.assignedUnit || "None"}<br>
-      ✔ Accepted: ${data.accepted ? "Yes" : "No"}<br>
-
-      <button onclick="assign('${call.id}')">Assign Me</button>
-      <button onclick="closeCall('${call.id}')">Close</button>
-    `;
-
-    container.appendChild(div);
-  });
-});
-
-/* ---------------- ASSIGN / CLOSE ---------------- */
 
 window.assign = async (id) => {
-  await updateDoc(doc(db, "calls", id), {
-    assignedUnit: uid,
-    status: "Pending Acceptance",
-    accepted: false
+  await updateDoc(doc(db,"calls",id),{
+    assigned:"unassigned",
+    status:"Pending"
   });
 };
 
-window.closeCall = async (id) => {
-  await updateDoc(doc(db, "calls", id), {
-    status: "Closed"
+onSnapshot(collection(db,"calls"),snap=>{
+  const c=document.getElementById("calls");
+  c.innerHTML="";
+  snap.forEach(d=>{
+    const call=d.data();
+    c.innerHTML+=`
+      <div>
+        ${call.type} - ${call.location}<br>
+        ${call.status}<br>
+        <button onclick="assign('${d.id}')">Assign</button>
+      </div>
+    `;
   });
-};
-
+});
 </script>
 
 </body>
