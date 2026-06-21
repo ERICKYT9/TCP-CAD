@@ -1,38 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
   <title>TCP CAD Login</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<h1>TCP CAD</h1>
+<h1>TCP CAD LOGIN</h1>
 
 <div class="card">
-
-  <h2>Secure Login</h2>
-  <p>Login with Discord to access CAD</p>
-
   <button onclick="login()">Login with Discord</button>
-
 </div>
 
 <script>
 const CLIENT_ID = "YOUR_CLIENT_ID";
-
-// IMPORTANT: must match Discord redirect EXACTLY
 const REDIRECT = "https://erickyt9.github.io/TCP-CAD/dashboard.html";
 
 function login() {
-  const url =
-    "https://discord.com/oauth2/authorize" +
-    "?client_id=" + CLIENT_ID +
-    "&response_type=token" +
-    "&redirect_uri=" + encodeURIComponent(REDIRECT) +
-    "&scope=identify";
-
-  window.location.href = url;
+  window.location.href =
+    `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}` +
+    `&response_type=token&redirect_uri=${encodeURIComponent(REDIRECT)}` +
+    `&scope=identify`;
 }
 </script>
 
