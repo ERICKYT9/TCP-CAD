@@ -14,9 +14,10 @@
 
   <h2>Unit Status</h2>
 
-  <button onclick="setStatus('10-8')">10-8</button>
-  <button onclick="setStatus('10-6')">10-6</button>
-  <button onclick="setStatus('10-7')">10-7</button>
+  <button onclick="setStatus('10-8')">10-8 Available</button>
+  <button onclick="setStatus('10-6')">10-6 Busy</button>
+  <button onclick="setStatus('10-97')">10-97 Enroute</button>
+  <button onclick="setStatus('10-23')">10-23 On Scene</button>
 
   <h2>Active Calls</h2>
   <div id="calls"></div>
@@ -35,7 +36,6 @@ const uid = localStorage.getItem("uid");
 if (!uid) window.location.href = "./index.html";
 
 const me = await getDoc(doc(db, "users", uid));
-
 if (!me.exists()) window.location.href = "./index.html";
 
 const role = me.data().role;
@@ -56,13 +56,32 @@ window.setStatus = async (status) => {
   });
 };
 
-// CALLS
+// ACCEPT CALL
+window.acceptCall = async (id) => {
+  await updateDoc(doc(db, "calls", id), {
+    accepted: true,
+    status: "Enroute"
+  });
+};
+
+// DECLINE CALL
+window.declineCall = async (id) => {
+  await updateDoc(doc(db, "calls", id), {
+    assignedUnit: null,
+    accepted: false,
+    status: "Active"
+  });
+};
+
+// LIVE CALLS
 onSnapshot(collection(db, "calls"), (snap) => {
   const container = document.getElementById("calls");
   container.innerHTML = "";
 
   snap.forEach(call => {
     const data = call.data();
+
+    const isAssignedToMe = data.assignedUnit === uid;
 
     const div = document.createElement("div");
     div.style.border = "1px solid white";
@@ -73,7 +92,13 @@ onSnapshot(collection(db, "calls"), (snap) => {
       <b>${data.type}</b><br>
       ${data.location}<br>
       Status: ${data.status}<br>
-      Assigned: ${data.assignedUnit || "None"}
+      Assigned: ${data.assignedUnit || "None"}<br>
+      Accepted: ${data.accepted ? "YES" : "NO"}<br>
+
+      ${isAssignedToMe ? `
+        <button onclick="acceptCall('${call.id}')">Accept</button>
+        <button onclick="declineCall('${call.id}')">Decline</button>
+      ` : ``}
     `;
 
     container.appendChild(div);
