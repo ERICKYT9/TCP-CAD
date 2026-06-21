@@ -1,9 +1,23 @@
-<button id="loginBtn">Login with Discord (Firebase placeholder)</button>
-
 <script type="module">
   import { auth } from "./firebase.js";
+  import {
+    signInAnonymously
+  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-  document.getElementById("loginBtn").addEventListener("click", () => {
-    alert("Firebase is connected. Next step: Discord OAuth login.");
+  const btn = document.getElementById("loginBtn");
+
+  btn.addEventListener("click", async () => {
+    try {
+      const userCred = await signInAnonymously(auth);
+
+      // store user in browser
+      localStorage.setItem("uid", userCred.user.uid);
+
+      // go to dashboard
+      window.location.href = "./dashboard.html";
+    } catch (err) {
+      console.error(err);
+      alert("Login failed");
+    }
   });
 </script>
