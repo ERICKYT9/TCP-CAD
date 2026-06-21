@@ -1,9 +1,18 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+  getAuth,
+  signInAnonymously
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
-// Your Firebase config
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
 const firebaseConfig = {
-  apiKey: "AIzaSyBZYGkz1oraXj4NNkjzm8M3mym10uGWpw4",
+  apiKey: "AIzaSyBZYGk1zoraXj4NNkjzm8M3mym10uGWpw4",
   authDomain: "tcp-cad-1.firebaseapp.com",
   projectId: "tcp-cad-1",
   storageBucket: "tcp-cad-1.firebasestorage.app",
@@ -12,6 +21,32 @@ const firebaseConfig = {
   measurementId: "G-5D59XY3VNT"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);// Paste your Firebase configuration here.
+
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+/**
+ * Create user if not exists
+ */
+export async function createUserIfNeeded(user) {
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      uid: user.uid,
+      role: "Civilian", // default role
+      createdAt: Date.now()
+    });
+  }
+}
+
+/**
+ * Login function
+ */
+export async function login() {
+  const cred = await signInAnonymously(auth);
+  await createUserIfNeeded(cred.user);
+  return cred.user;
+}
