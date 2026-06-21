@@ -12,7 +12,7 @@
 
   <h2>Create Call</h2>
 
-  <input id="type" placeholder="Call Type (Robbery, 911, etc)">
+  <input id="type" placeholder="Call Type">
   <input id="location" placeholder="Location">
   <button id="create">Create Call</button>
 
@@ -24,46 +24,38 @@
 <script type="module">
 import { db } from "./firebase.js";
 import {
-  doc,
-  getDoc,
+  doc, getDoc,
   collection,
   addDoc,
-  getDocs
+  updateDoc,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const uid = localStorage.getItem("uid");
 if (!uid) window.location.href = "./index.html";
 
-// check role
 const me = await getDoc(doc(db, "users", uid));
 
 if (!me.exists() || (me.data().role !== "Dispatch" && me.data().role !== "Admin")) {
   document.body.innerHTML = "<h1>Access Denied</h1>";
 }
 
-// show panel
 document.getElementById("panel").style.display = "block";
 
-// create call
+// CREATE CALL
 document.getElementById("create").onclick = async () => {
-  const type = document.getElementById("type").value;
-  const location = document.getElementById("location").value;
-
   await addDoc(collection(db, "calls"), {
-    type,
-    location,
+    type: type.value,
+    location: location.value,
     status: "Active",
+    assignedUnit: null,
     timestamp: Date.now()
   });
-
-  loadCalls();
 };
 
-// load calls
-async function loadCalls() {
-  const snap = await getDocs(collection(db, "calls"));
+// LIVE CALLS
+onSnapshot(collection(db, "calls"), (snap) => {
   const container = document.getElementById("calls");
-
   container.innerHTML = "";
 
   snap.forEach(call => {
@@ -77,14 +69,30 @@ async function loadCalls() {
     div.innerHTML = `
       <b>${data.type}</b><br>
       ${data.location}<br>
-      Status: ${data.status}
+      Status: ${data.status}<br>
+      Assigned: ${data.assignedUnit || "None"}<br>
+      <button onclick="assign('${call.id}')">Assign Me</button>
+      <button onclick="closeCall('${call.id}')">Close</button>
     `;
 
     container.appendChild(div);
   });
-}
+});
 
-loadCalls();
+// ASSIGN
+window.assign = async (id) => {
+  await updateDoc(doc(db, "calls", id), {
+    assignedUnit: uid,
+    status: "Assigned"
+  });
+};
+
+// CLOSE
+window.closeCall = async (id) => {
+  await updateDoc(doc(db, "calls", id), {
+    status: "Closed"
+  });
+};
 </script>
 
 </body>
