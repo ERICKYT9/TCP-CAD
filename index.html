@@ -8,34 +8,25 @@
     body {
       margin: 0;
       font-family: Arial;
-      background: url("https://images.unsplash.com/photo-1581091870622-2c9b6b9c2d2d") no-repeat center center fixed;
-      background-size: cover;
+      background: url("https://images.unsplash.com/photo-1581091870622-2c9b6b9c2d2d") center/cover no-repeat;
       color: white;
     }
 
     .overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0,0,0,0.6);
+      inset: 0;
+      background: rgba(0,0,0,0.65);
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
     .card {
-      background: rgba(17,24,39,0.9);
-      padding: 30px;
+      background: #111827;
+      padding: 25px;
       border-radius: 12px;
-      text-align: center;
       width: 320px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
-
-    h1 {
-      margin-bottom: 10px;
+      text-align: center;
     }
 
     button {
@@ -45,18 +36,7 @@
       border-radius: 8px;
       background: #5865F2;
       color: white;
-      font-weight: bold;
       cursor: pointer;
-    }
-
-    button:hover {
-      background: #4752c4;
-    }
-
-    .small {
-      font-size: 12px;
-      opacity: 0.7;
-      margin-top: 10px;
     }
   </style>
 </head>
@@ -65,12 +45,9 @@
 
 <div class="overlay">
   <div class="card">
-    <h1>TCP CAD</h1>
-    <p>Secure Police CAD System</p>
-
+    <h2>TCP CAD</h2>
+    <p>Secure Access System</p>
     <button onclick="login()">Login with Discord</button>
-
-    <div class="small">Authorized Personnel Only</div>
   </div>
 </div>
 
