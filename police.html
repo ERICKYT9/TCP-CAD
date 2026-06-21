@@ -6,63 +6,79 @@
 </head>
 <body>
 
-<h1>LEO CAD SYSTEM</h1>
-<p id="status">Checking access...</p>
+<h1>LEO CAD</h1>
 
 <div id="panel" style="display:none;">
-  <h2>Welcome Officer</h2>
+
   <p id="roleText"></p>
 
-  <div>
-    <button>📡 Active Calls</button>
-    <button>🚓 Units</button>
-    <button>📋 Reports</button>
-  </div>
+  <h2>Unit Status</h2>
 
-  <div id="special"></div>
+  <button onclick="setStatus('10-8')">10-8</button>
+  <button onclick="setStatus('10-6')">10-6</button>
+  <button onclick="setStatus('10-7')">10-7</button>
+
+  <h2>Active Calls</h2>
+  <div id="calls"></div>
+
 </div>
 
 <script type="module">
 import { db } from "./firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import {
+  doc, getDoc, updateDoc,
+  collection,
+  onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const uid = localStorage.getItem("uid");
-
 if (!uid) window.location.href = "./index.html";
 
-const snap = await getDoc(doc(db, "users", uid));
+const me = await getDoc(doc(db, "users", uid));
 
-if (!snap.exists()) {
-  window.location.href = "./index.html";
-}
+if (!me.exists()) window.location.href = "./index.html";
 
-const role = snap.data().role;
+const role = me.data().role;
 
-// ALL LAW ENFORCEMENT ROLES
-const leoRoles = ["Police", "CHP", "LASO", "Admin"];
+const allowed = ["Police", "CHP", "LASO", "Admin"];
 
-if (!leoRoles.includes(role)) {
+if (!allowed.includes(role)) {
   document.body.innerHTML = "<h1>Access Denied</h1>";
-} else {
-  document.getElementById("status").style.display = "none";
-  document.getElementById("panel").style.display = "block";
-
-  document.getElementById("roleText").innerText = "Role: " + role;
-
-  const special = document.getElementById("special");
-
-  if (role === "CHP") {
-    special.innerHTML = "<h3>🚨 Highway Patrol Tools Enabled</h3>";
-  }
-
-  if (role === "LASO") {
-    special.innerHTML = "<h3>🚨 Sheriff Tools Enabled</h3>";
-  }
-
-  if (role === "Police") {
-    special.innerHTML = "<h3>🚨 Local PD Tools Enabled</h3>";
-  }
 }
+
+document.getElementById("panel").style.display = "block";
+document.getElementById("roleText").innerText = "Role: " + role;
+
+// STATUS
+window.setStatus = async (status) => {
+  await updateDoc(doc(db, "users", uid), {
+    status
+  });
+};
+
+// CALLS
+onSnapshot(collection(db, "calls"), (snap) => {
+  const container = document.getElementById("calls");
+  container.innerHTML = "";
+
+  snap.forEach(call => {
+    const data = call.data();
+
+    const div = document.createElement("div");
+    div.style.border = "1px solid white";
+    div.style.margin = "5px";
+    div.style.padding = "5px";
+
+    div.innerHTML = `
+      <b>${data.type}</b><br>
+      ${data.location}<br>
+      Status: ${data.status}<br>
+      Assigned: ${data.assignedUnit || "None"}
+    `;
+
+    container.appendChild(div);
+  });
+});
 </script>
 
 </body>
