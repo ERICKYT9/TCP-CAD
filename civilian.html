@@ -1,91 +1,46 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Civilian MDT</title>
-  <link rel="stylesheet" href="style.css">
-</head>
 <body>
 
 <h1>Civilian MDT</h1>
 
-<div id="panel" style="display:none;">
+<h3>Create Person</h3>
+<input id="name" placeholder="Name">
+<button onclick="addPerson()">Add</button>
 
-  <h2>Create Person</h2>
-  <input id="pname" placeholder="Full Name">
-  <input id="pdob" placeholder="DOB">
-  <button onclick="createPerson()">Create Person</button>
+<h3>Register Vehicle</h3>
+<input id="plate" placeholder="Plate">
+<button onclick="addVehicle()">Add</button>
 
-  <h2>Register Vehicle</h2>
-  <input id="plate" placeholder="Plate">
-  <input id="model" placeholder="Vehicle Model">
-  <button onclick="createVehicle()">Register Vehicle</button>
-
-  <h2>Register Property</h2>
-  <input id="address" placeholder="Address">
-  <button onclick="createProperty()">Register Property</button>
-
-  <h2>Register Weapon</h2>
-  <input id="wtype" placeholder="Weapon Type">
-  <button onclick="createWeapon()">Register Weapon</button>
-
-</div>
+<h3>Weapons</h3>
+<input id="weapon" placeholder="Weapon">
+<button onclick="addWeapon()">Add</button>
 
 <script type="module">
 import { db } from "./firebase.js";
-import {
-  doc, getDoc,
-  collection,
-  addDoc
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const uid = localStorage.getItem("uid");
-if (!uid) window.location.href = "./index.html";
 
-const me = await getDoc(doc(db, "users", uid));
-
-if (!me.exists() || me.data().role !== "Civilian") {
-  document.body.innerHTML = "<h1>Access Denied</h1>";
-}
-
-document.getElementById("panel").style.display = "block";
-
-// PERSON
-window.createPerson = async () => {
-  await addDoc(collection(db, "persons"), {
-    ownerUid: uid,
-    name: pname.value,
-    dob: pdob.value,
-    notes: ""
+window.addPerson = async () => {
+  await addDoc(collection(db,"persons"),{
+    owner:uid,
+    name:name.value
   });
-  alert("Person created");
 };
 
-// VEHICLE
-window.createVehicle = async () => {
-  await addDoc(collection(db, "vehicles"), {
-    ownerUid: uid,
-    plate: plate.value,
-    model: model.value
+window.addVehicle = async () => {
+  await addDoc(collection(db,"vehicles"),{
+    owner:uid,
+    plate:plate.value
   });
-  alert("Vehicle registered");
 };
 
-// PROPERTY
-window.createProperty = async () => {
-  await addDoc(collection(db, "properties"), {
-    ownerUid: uid,
-    address: address.value
+window.addWeapon = async () => {
+  await addDoc(collection(db,"weapons"),{
+    owner:uid,
+    weapon:weapon.value
   });
-  alert("Property registered");
-};
-
-// WEAPON
-window.createWeapon = async () => {
-  await addDoc(collection(db, "weapons"), {
-    ownerUid: uid,
-    type: wtype.value
-  });
-  alert("Weapon registered");
 };
 </script>
 
