@@ -1,1 +1,33 @@
-<!DOCTYPE html><html><body><h1>FBI TAC</h1></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FBI TAC CAD</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>FBI TAC CAD</h1>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+const uid = localStorage.getItem("uid");
+if (!uid) window.location.href = "./index.html";
+
+const snap = await getDoc(doc(db, "users", uid));
+if (!snap.exists()) window.location.href = "./index.html";
+
+const role = snap.data().role;
+
+const allowed = ["FBI", "Admin"];
+
+if (!allowed.includes(role)) {
+  document.body.innerHTML = "<h1>Access Denied</h1>";
+} else {
+  document.body.innerHTML += "<h2>FBI TAC System Active</h2>";
+}
+</script>
+
+</body>
+</html>
