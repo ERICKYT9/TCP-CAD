@@ -1,37 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <title>Dashboard</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<h1>TCP CAD DASHBOARD</h1>
+<h1>CAD DASHBOARD</h1>
 
-<p id="status">Loading...</p>
+<p id="status">Loading user...</p>
 
-<div id="panel" style="display:none;" class="card">
-
+<div id="panel" class="card" style="display:none;">
   <h2>Welcome <span id="name"></span></h2>
-  <p>ID: <span id="did"></span></p>
   <p>Role: <span id="role"></span></p>
 
-  <button onclick="go('LEO')">LEO</button>
-  <button onclick="go('Dispatch')">Dispatch</button>
-  <button onclick="go('Civilian')">Civilian</button>
-  <button onclick="go('Admin')">Admin</button>
-
+  <button onclick="go('dispatch')">Dispatch</button>
+  <button onclick="go('leo')">LEO</button>
+  <button onclick="go('civilian')">Civilian</button>
+  <button onclick="go('admin')">Admin</button>
 </div>
 
 <script type="module">
 
 import { db } from "./js/firebase.js";
-import {
-  doc,
-  getDoc,
-  setDoc
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+/* GET TOKEN */
 function getToken() {
   const hash = window.location.hash;
   const params = new URLSearchParams(hash.replace("#",""));
@@ -39,19 +34,23 @@ function getToken() {
 }
 
 const token = getToken();
+
+/* CLEAN URL (important security fix) */
 window.history.replaceState({}, document.title, window.location.pathname);
 
 if (!token) {
-  document.getElementById("status").innerText = "No login detected";
+  document.getElementById("status").innerText = "Login failed";
   throw new Error("No token");
 }
 
+/* GET DISCORD USER */
 const res = await fetch("https://discord.com/api/users/@me", {
   headers: { Authorization: `Bearer ${token}` }
 });
 
 const user = await res.json();
 
+/* FIREBASE USER */
 const ref = doc(db, "users", user.id);
 const snap = await getDoc(ref);
 
@@ -64,17 +63,18 @@ if (!snap.exists()) {
   });
 }
 
-const finalUser = (await getDoc(ref)).data();
+const data = (await getDoc(ref)).data();
 
+/* UI */
 document.getElementById("status").style.display = "none";
 document.getElementById("panel").style.display = "block";
 
-document.getElementById("name").innerText = finalUser.username;
-document.getElementById("did").innerText = finalUser.discordId;
-document.getElementById("role").innerText = finalUser.role;
+document.getElementById("name").innerText = data.username;
+document.getElementById("role").innerText = data.role;
 
-window.go = (r) => {
-  location.href = "./" + r.toLowerCase() + ".html";
+/* NAV */
+window.go = (page) => {
+  location.href = `./${page}.html`;
 };
 
 </script>
