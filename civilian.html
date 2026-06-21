@@ -1,48 +1,6 @@
-<!DOCTYPE html>
-<html>
-<body>
+<h1>Civilian CAD</h1>
+<button class="back" onclick="history.back()">⬅ Back</button>
 
-<h1>Civilian MDT</h1>
-
-<h3>Create Person</h3>
-<input id="name" placeholder="Name">
-<button onclick="addPerson()">Add</button>
-
-<h3>Register Vehicle</h3>
-<input id="plate" placeholder="Plate">
-<button onclick="addVehicle()">Add</button>
-
-<h3>Weapons</h3>
-<input id="weapon" placeholder="Weapon">
-<button onclick="addWeapon()">Add</button>
-
-<script type="module">
-import { db } from "./firebase.js";
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-const uid = localStorage.getItem("uid");
-
-window.addPerson = async () => {
-  await addDoc(collection(db,"persons"),{
-    owner:uid,
-    name:name.value
-  });
-};
-
-window.addVehicle = async () => {
-  await addDoc(collection(db,"vehicles"),{
-    owner:uid,
-    plate:plate.value
-  });
-};
-
-window.addWeapon = async () => {
-  await addDoc(collection(db,"weapons"),{
-    owner:uid,
-    weapon:weapon.value
-  });
-};
-</script>
-
-</body>
-</html>
+<div class="card">
+  Coming soon: Characters, Vehicles, Properties
+</div>
