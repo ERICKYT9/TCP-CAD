@@ -2,22 +2,30 @@
 <html>
 <head>
   <title>TCP CAD Login</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>TCP CAD LOGIN</h1>
+<h1>TCP CAD</h1>
 
-<button onclick="login()">Login with Discord</button>
+<div id="panel">
+
+  <h2>Secure Login</h2>
+
+  <button onclick="login()">Login with Discord</button>
+
+</div>
 
 <script>
-const CLIENT_ID = "1517160152376021002";
-const REDIRECT = window.location.origin + "/TCP-CAD/";
+const CLIENT_ID = "YOUR_CLIENT_ID";
 
 function login() {
-  const oauth = 
-`https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(REDIRECT)}&scope=identify`;
+  const redirect = encodeURIComponent("https://erickyt9.github.io/TCP-CAD/dashboard.html");
 
-  window.location.href = oauth;
+  const url =
+  `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${redirect}&scope=identify`;
+
+  window.location.href = url;
 }
 </script>
 
