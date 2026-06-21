@@ -33,6 +33,7 @@
 <script type="module">
 
 import { db } from "./js/firebase.js";
+console.log("Firebase loaded:", db);
 import {
   doc,
   getDoc,
@@ -89,7 +90,6 @@ if (!snap.exists()) {
 const userSnap = await getDoc(ref);
 const user = userSnap.data();
 
-  console.log("Firebase loaded:", db);
 /* ---------------- UI ---------------- */
 
 document.getElementById("status").style.display = "none";
