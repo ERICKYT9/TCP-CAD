@@ -89,6 +89,7 @@ if (!snap.exists()) {
 const userSnap = await getDoc(ref);
 const user = userSnap.data();
 
+  console.log("Firebase loaded:", db);
 /* ---------------- UI ---------------- */
 
 document.getElementById("status").style.display = "none";
@@ -113,3 +114,4 @@ window.go = (role) => {
 
 </body>
 </html>
+
