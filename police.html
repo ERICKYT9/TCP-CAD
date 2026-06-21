@@ -6,74 +6,89 @@
 </head>
 <body>
 
-<h1>LEO CAD</h1>
+<h1>LEO CAD SYSTEM</h1>
+
+<p id="status">Loading CAD...</p>
 
 <div id="panel" style="display:none;">
 
-  <p id="roleText"></p>
+  <h2 id="roleText"></h2>
 
-  <h2>Unit Status</h2>
+  <!-- UNIT STATUS -->
+  <h3>Unit Status</h3>
+  <button onclick="setStatus('10-8')">10-8 (Available)</button>
+  <button onclick="setStatus('10-6')">10-6 (Busy)</button>
+  <button onclick="setStatus('10-97')">10-97 (Enroute)</button>
+  <button onclick="setStatus('10-23')">10-23 (On Scene)</button>
 
-  <button onclick="setStatus('10-8')">10-8 Available</button>
-  <button onclick="setStatus('10-6')">10-6 Busy</button>
-  <button onclick="setStatus('10-97')">10-97 Enroute</button>
-  <button onclick="setStatus('10-23')">10-23 On Scene</button>
+  <hr>
 
-  <h2>Active Calls</h2>
+  <!-- CALLS -->
+  <h3>Active Calls</h3>
   <div id="calls"></div>
+
+  <hr>
+
+  <!-- MDT -->
+  <h3>MDT Lookup</h3>
+  <input id="search" placeholder="Search Plate or Name">
+  <button onclick="searchMDT()">Search</button>
+  <div id="results"></div>
 
 </div>
 
 <script type="module">
+
 import { db } from "./firebase.js";
 import {
-  doc, getDoc, updateDoc,
+  doc,
+  getDoc,
+  updateDoc,
   collection,
-  onSnapshot
+  onSnapshot,
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+/* ---------------- LOGIN ---------------- */
+
 const uid = localStorage.getItem("uid");
-if (!uid) window.location.href = "./index.html";
+
+if (!uid) {
+  window.location.href = "./index.html";
+}
 
 const me = await getDoc(doc(db, "users", uid));
-if (!me.exists()) window.location.href = "./index.html";
+
+if (!me.exists()) {
+  window.location.href = "./index.html";
+}
 
 const role = me.data().role;
 
-const allowed = ["Police", "CHP", "LASO", "Admin"];
+/* ---------------- ROLE CHECK ---------------- */
 
-if (!allowed.includes(role)) {
+const allowedRoles = ["Police", "CHP", "LASO", "Admin"];
+
+if (!allowedRoles.includes(role)) {
   document.body.innerHTML = "<h1>Access Denied</h1>";
 }
 
+/* ---------------- SHOW UI ---------------- */
+
+document.getElementById("status").style.display = "none";
 document.getElementById("panel").style.display = "block";
 document.getElementById("roleText").innerText = "Role: " + role;
 
-// STATUS
+/* ---------------- UNIT STATUS ---------------- */
+
 window.setStatus = async (status) => {
   await updateDoc(doc(db, "users", uid), {
-    status
+    status: status
   });
 };
 
-// ACCEPT CALL
-window.acceptCall = async (id) => {
-  await updateDoc(doc(db, "calls", id), {
-    accepted: true,
-    status: "Enroute"
-  });
-};
+/* ---------------- LIVE CALLS ---------------- */
 
-// DECLINE CALL
-window.declineCall = async (id) => {
-  await updateDoc(doc(db, "calls", id), {
-    assignedUnit: null,
-    accepted: false,
-    status: "Active"
-  });
-};
-
-// LIVE CALLS
 onSnapshot(collection(db, "calls"), (snap) => {
   const container = document.getElementById("calls");
   container.innerHTML = "";
@@ -81,29 +96,68 @@ onSnapshot(collection(db, "calls"), (snap) => {
   snap.forEach(call => {
     const data = call.data();
 
-    const isAssignedToMe = data.assignedUnit === uid;
-
     const div = document.createElement("div");
-    div.style.border = "1px solid white";
-    div.style.margin = "5px";
-    div.style.padding = "5px";
+    div.style.border = "1px solid #999";
+    div.style.margin = "6px";
+    div.style.padding = "6px";
 
     div.innerHTML = `
       <b>${data.type}</b><br>
-      ${data.location}<br>
-      Status: ${data.status}<br>
-      Assigned: ${data.assignedUnit || "None"}<br>
-      Accepted: ${data.accepted ? "YES" : "NO"}<br>
-
-      ${isAssignedToMe ? `
-        <button onclick="acceptCall('${call.id}')">Accept</button>
-        <button onclick="declineCall('${call.id}')">Decline</button>
-      ` : ``}
+      📍 ${data.location}<br>
+      📡 Status: ${data.status}<br>
+      🚓 Assigned: ${data.assignedUnit || "None"}<br>
+      ✔ Accepted: ${data.accepted ? "YES" : "NO"}<br>
     `;
 
     container.appendChild(div);
   });
 });
+
+/* ---------------- MDT SEARCH ---------------- */
+
+window.searchMDT = async () => {
+  const q = document.getElementById("search").value.toLowerCase();
+  const results = document.getElementById("results");
+  results.innerHTML = "";
+
+  // VEHICLES
+  const vehicles = await getDocs(collection(db, "vehicles"));
+
+  vehicles.forEach(v => {
+    const d = v.data();
+
+    if (
+      (d.plate && d.plate.toLowerCase().includes(q)) ||
+      (d.model && d.model.toLowerCase().includes(q))
+    ) {
+      results.innerHTML += `
+        <div>
+          🚗 VEHICLE<br>
+          Plate: ${d.plate}<br>
+          Model: ${d.model}
+        </div><hr>
+      `;
+    }
+  });
+
+  // PERSONS
+  const persons = await getDocs(collection(db, "persons"));
+
+  persons.forEach(p => {
+    const d = p.data();
+
+    if (d.name && d.name.toLowerCase().includes(q)) {
+      results.innerHTML += `
+        <div>
+          👤 PERSON<br>
+          Name: ${d.name}<br>
+          DOB: ${d.dob}
+        </div><hr>
+      `;
+    }
+  });
+};
+
 </script>
 
 </body>
