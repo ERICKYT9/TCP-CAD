@@ -1,65 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dispatch</title>
+  <title>Dispatch CAD</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<h1>Dispatch</h1>
+<h1>Dispatch Panel</h1>
 
-<div id="panel">
+<div class="card">
 
-<h2>Create Call</h2>
-<input id="type" placeholder="Type">
+<h3>Create Call</h3>
+
+<input id="type" placeholder="Call Type (e.g. 10-31 Robbery)">
 <input id="location" placeholder="Location">
-<button onclick="create()">Create</button>
-
-<h2>Calls</h2>
-<div id="calls"></div>
+<button onclick="createCall()">Create Call</button>
 
 </div>
 
+<div class="card">
+<h3>Active Calls</h3>
+<div id="calls"></div>
+</div>
+
 <script type="module">
-import { db } from "./firebase.js";
+
+import { db } from "./js/firebase.js";
 import {
   collection,
   addDoc,
-  updateDoc,
-  doc,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-window.create = async () => {
-  await addDoc(collection(db,"calls"),{
-    type:type.value,
-    location:location.value,
-    status:"Active",
-    assigned:null,
-    accepted:false
+/* CREATE CALL */
+window.createCall = async () => {
+  await addDoc(collection(db, "calls"), {
+    type: document.getElementById("type").value,
+    location: document.getElementById("location").value,
+    status: "Active",
+    assignedTo: null,
+    createdAt: Date.now()
   });
+
+  document.getElementById("type").value = "";
+  document.getElementById("location").value = "";
 };
 
-window.assign = async (id) => {
-  await updateDoc(doc(db,"calls",id),{
-    assigned:"unassigned",
-    status:"Pending"
-  });
-};
+/* LIVE FEED */
+onSnapshot(collection(db, "calls"), (snap) => {
+  const box = document.getElementById("calls");
+  box.innerHTML = "";
 
-onSnapshot(collection(db,"calls"),snap=>{
-  const c=document.getElementById("calls");
-  c.innerHTML="";
-  snap.forEach(d=>{
-    const call=d.data();
-    c.innerHTML+=`
-      <div>
-        ${call.type} - ${call.location}<br>
-        ${call.status}<br>
-        <button onclick="assign('${d.id}')">Assign</button>
+  snap.forEach(doc => {
+    const c = doc.data();
+
+    box.innerHTML += `
+      <div class="card">
+        <b>${c.type}</b><br>
+        📍 ${c.location}<br>
+        Status: ${c.status}<br>
+        Assigned: ${c.assignedTo || "None"}
       </div>
     `;
   });
 });
+
 </script>
 
 </body>
