@@ -15,16 +15,20 @@
 </div>
 
 <script>
-const CLIENT_ID = "YOUR_CLIENT_ID";
+const CLIENT_ID = "1517160152376021002";
+
+/* MUST EXACT MATCH Discord Dev Portal Redirect */
 const REDIRECT = "https://erickyt9.github.io/TCP-CAD/dashboard.html";
 
 function login() {
-  window.location.href =
-    `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}` +
-    `&response_type=token&redirect_uri=${encodeURIComponent(REDIRECT)}` +
-    `&scope=identify`;
+  const url =
+    "https://discord.com/oauth2/authorize" +
+    `?client_id=${CLIENT_ID}` +
+    "&response_type=token" +
+    `&redirect_uri=${encodeURIComponent(REDIRECT)}` +
+    "&scope=identify" +
+    "&prompt=consent";
+
+  window.location.href = url;
 }
 </script>
-
-</body>
-</html>
