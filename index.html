@@ -1,37 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
   <title>TCP CAD Login</title>
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h1>TCP CAD LOGIN</h1>
 
-<p>Enter User ID (for now)</p>
+<button onclick="login()">Login with Discord</button>
 
-<input id="uidInput" placeholder="Enter: testUser">
-<button onclick="login()">Login</button>
+<script>
+const CLIENT_ID = "YOUR_DISCORD_CLIENT_ID";
+const REDIRECT = window.location.origin + "/TCP-CAD/";
 
-<p id="msg"></p>
+function login() {
+  const oauth = 
+`https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(REDIRECT)}&scope=identify`;
 
-<script type="module">
-import { db } from "./firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+  window.location.href = oauth;
+}
+</script>
 
-window.login = async () => {
-  const uid = document.getElementById("uidInput").value;
-
-  const ref = doc(db, "users", uid);
-  const snap = await getDoc(ref);
-
-  if (!snap.exists()) {
-    document.getElementById("msg").innerText = "User not found";
-    return;
-  }
-
-  localStorage.setItem("uid", uid);
-
-  window.location.href = "./leo.html";
-};
+</body>
+</html>
