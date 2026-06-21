@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dispatch CAD</title>
+  <meta charset="utf-8">
+  <title>Dispatch</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -9,19 +10,12 @@
 <h1>Dispatch Panel</h1>
 
 <div class="card">
-
-<h3>Create Call</h3>
-
-<input id="type" placeholder="Call Type (e.g. 10-31 Robbery)">
-<input id="location" placeholder="Location">
-<button onclick="createCall()">Create Call</button>
-
+  <input id="type" placeholder="Call Type">
+  <input id="location" placeholder="Location">
+  <button onclick="createCall()">Create Call</button>
 </div>
 
-<div class="card">
-<h3>Active Calls</h3>
 <div id="calls"></div>
-</div>
 
 <script type="module">
 
@@ -46,20 +40,19 @@ window.createCall = async () => {
   document.getElementById("location").value = "";
 };
 
-/* LIVE FEED */
+/* LIVE CALLS */
 onSnapshot(collection(db, "calls"), (snap) => {
   const box = document.getElementById("calls");
   box.innerHTML = "";
 
-  snap.forEach(doc => {
-    const c = doc.data();
+  snap.forEach(d => {
+    const c = d.data();
 
     box.innerHTML += `
       <div class="card">
         <b>${c.type}</b><br>
-        📍 ${c.location}<br>
-        Status: ${c.status}<br>
-        Assigned: ${c.assignedTo || "None"}
+        ${c.location}<br>
+        Status: ${c.status}
       </div>
     `;
   });
