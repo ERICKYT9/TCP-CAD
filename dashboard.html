@@ -6,34 +6,85 @@
 </head>
 <body>
 
-<h1>Dispatch CAD</h1>
-<p id="status">Checking access...</p>
+<h1>Dispatch Center</h1>
 
 <div id="panel" style="display:none;">
-  <h2>Dispatch Control Center</h2>
-  <button>📡 Active Calls</button>
-  <button>🚓 Units Status</button>
-  <button>➕ Create Call</button>
+
+  <h2>Create Call</h2>
+
+  <input id="type" placeholder="Call Type (Robbery, 911, etc)">
+  <input id="location" placeholder="Location">
+  <button id="create">Create Call</button>
+
+  <h2>Active Calls</h2>
+  <div id="calls"></div>
+
 </div>
 
 <script type="module">
 import { db } from "./firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+import {
+  doc,
+  getDoc,
+  collection,
+  addDoc,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
 const uid = localStorage.getItem("uid");
 if (!uid) window.location.href = "./index.html";
 
-const snap = await getDoc(doc(db, "users", uid));
-if (!snap.exists()) window.location.href = "./index.html";
+// check role
+const me = await getDoc(doc(db, "users", uid));
 
-const role = snap.data().role;
-
-if (role !== "Dispatch" && role !== "Admin") {
-  document.body.innerHTML = "Access Denied";
-} else {
-  document.getElementById("status").style.display = "none";
-  document.getElementById("panel").style.display = "block";
+if (!me.exists() || (me.data().role !== "Dispatch" && me.data().role !== "Admin")) {
+  document.body.innerHTML = "<h1>Access Denied</h1>";
 }
+
+// show panel
+document.getElementById("panel").style.display = "block";
+
+// create call
+document.getElementById("create").onclick = async () => {
+  const type = document.getElementById("type").value;
+  const location = document.getElementById("location").value;
+
+  await addDoc(collection(db, "calls"), {
+    type,
+    location,
+    status: "Active",
+    timestamp: Date.now()
+  });
+
+  loadCalls();
+};
+
+// load calls
+async function loadCalls() {
+  const snap = await getDocs(collection(db, "calls"));
+  const container = document.getElementById("calls");
+
+  container.innerHTML = "";
+
+  snap.forEach(call => {
+    const data = call.data();
+
+    const div = document.createElement("div");
+    div.style.border = "1px solid white";
+    div.style.margin = "5px";
+    div.style.padding = "5px";
+
+    div.innerHTML = `
+      <b>${data.type}</b><br>
+      ${data.location}<br>
+      Status: ${data.status}
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+loadCalls();
 </script>
 
 </body>
