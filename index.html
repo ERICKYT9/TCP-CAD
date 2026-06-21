@@ -31,16 +31,7 @@ window.login = async () => {
     return;
   }
 
-  // store session
   localStorage.setItem("uid", uid);
 
-  document.getElementById("msg").innerText = "Login successful... redirecting";
-
-  setTimeout(() => {
-    window.location.href = "./leo.html";
-  }, 1000);
+  window.location.href = "./leo.html";
 };
-</script>
-
-</body>
-</html>
